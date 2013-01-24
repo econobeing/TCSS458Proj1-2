@@ -10,10 +10,37 @@
 
 #include <vector>
 
+#include "vec.h"
+
+#include "Thing.hpp"
+
+
 struct Point2D
 {
 	int x, y;
 };
+
+Thing createUnitCube()
+{
+	Thing cube;
+	cube.type == Thing::CUBE;
+	cube.points.push_back(vec4(-0.5, -0.5, -0.5, 1));
+	cube.points.push_back(vec4(-0.5, -0.5, 0.5, 1));
+	cube.points.push_back(vec4(-0.5, 0.5, -0.5, 1));
+	cube.points.push_back(vec4(-0.5, 0.5, 0.5, 1));
+
+	cube.points.push_back(vec4(0.5, -0.5, -0.5, 1));
+	cube.points.push_back(vec4(0.5, -0.5, 0.5, 1));
+	cube.points.push_back(vec4(0.5, 0.5, -0.5, 1));
+	cube.points.push_back(vec4(0.5, 0.5, 0.5, 1));
+
+	//which vectors pairs to draw as lines:
+	// (0,1), (0,3), (0,5), (1,3), (1,5), (2,3), (2,6), (3,7), (4,5),
+	// (4,6), (5,7), (6,7)
+	//^those are the indices of the points array to use.
+
+	return cube;
+}
 
 std::vector<Point2D> getPointsFromLine2D(int x1, int y1, int x2, int y2)
 {

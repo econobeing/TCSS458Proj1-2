@@ -5,6 +5,10 @@
  *      Author: Travis Lewis
  */
 
+//helper stuff, needs to be at the top for some reason.
+#include "mat.h"
+#include "vec.h"
+
 //C includes
 #include <stdio.h>
 #include <string.h>
@@ -14,22 +18,23 @@
 
 //C++ includes
 #include <vector>
+#include <iostream>
 
-//helper stuff
-#include "mat.h"
-#include "vec.h"
+
 
 //my includes
 #include "helpers.hpp"
 #include "TriLines.hpp"
 #include "Thing.hpp"
 
+using namespace std;
+
 //defines to make understanding the code easier
 #define TRUE 1
 #define FALSE 0
-#define LINE 1
-#define TRIANGLE 2
-#define RGB 3
+//#define LINE 1
+//#define TRIANGLE 2
+//#define RGB 3
 
 unsigned int window_width,// = 512,
              window_height;// = 512;
@@ -41,21 +46,15 @@ int size;
 float* pixels;
 float red, green, blue;
 
-struct pdata
-{
-	int type; //LINE, TRIANGLE, or RGB
-	float x1,x2,x3;
-	float y1,y2,y3;
-	float r,g,b;
-};
+std::vector<Thing> things;
+
+mat4 CTM;
 
 //FUNCTION PROTOTYPES
 int objToPix(float f, int pixels);
 void drawLine(int x1, int y1, int x2, int y2);
-void drawTriangle(pdata* p);
+void drawTriangle(Thing* t);
 
-/** The lines/triangles/colors read from the input file. */
-std::vector<pdata> things;
 
 void putPixel(int x, int y, float r, float g, float b) {
     if (0 <= x && x < (int)window_width &&
@@ -80,28 +79,33 @@ void display()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	//this is where the stuff gets drawn.
-	for(std::vector<pdata>::iterator it = things.begin(), end = things.end();
+	for(std::vector<Thing>::iterator it = things.begin(), end = things.end();
 		it != end ; ++it)
 	{
 		switch(it->type)
 		{
-		case LINE:
+		case Thing::LINE:
 		{
-			drawLine(objToPix(it->x1, window_width),
-					objToPix(it->y1, window_height),
-					objToPix(it->x2, window_width),
-					objToPix(it->y2, window_height));
+//			drawLine(objToPix(it->x1, window_width),
+//					objToPix(it->y1, window_height),
+//					objToPix(it->x2, window_width),
+//					objToPix(it->y2, window_height));
+			//TODO: apparently vec4 has no such thing as .xyz(), so
+			// i'll probably have to make a helper method for it...
 			break;
 		}
-		case TRIANGLE:
+		case Thing::TRIANGLE:
 			drawTriangle(&*it);
 			break;
-		case RGB:
+		case Thing::RGB:
 			red = it->r;
 			green = it->g;
 			blue = it->b;
 			break;
+		case Thing::CUBE:
+			break;
 		}
+
 	}
 
 	//glDrawPixels writes a block of pixels to the framebuffer.
@@ -110,25 +114,25 @@ void display()
 	glutSwapBuffers();
 }
 
-void drawTriangle(pdata* p)
+void drawTriangle(Thing* t)
 {
-	int x1 = objToPix(p->x1,window_width);
-	int x2 = objToPix(p->x2,window_width);
-	int x3 = objToPix(p->x3,window_width);
-	int y1 = objToPix(p->y1,window_height);
-	int y2 = objToPix(p->y2,window_height);
-	int y3 = objToPix(p->y3,window_height);
+//	int x1 = objToPix(p->x1,window_width);
+//	int x2 = objToPix(p->x2,window_width);
+//	int x3 = objToPix(p->x3,window_width);
+//	int y1 = objToPix(p->y1,window_height);
+//	int y2 = objToPix(p->y2,window_height);
+//	int y3 = objToPix(p->y3,window_height);
 
-	TriLines tri;
-	tri.addLine(x1,y1,x2,y2);
-	tri.addLine(x1,y1,x3,y3);
-	tri.addLine(x2,y2,x3,y3);
-
-	for(std::vector<HorizLine>::iterator it = tri.lines.begin(),
-			end = tri.lines.end() ; it != end ; ++it)
-	{
-		drawLine(it->left, it->y, it->right, it->y);
-	}
+//	TriLines tri;
+//	tri.addLine(x1,y1,x2,y2);
+//	tri.addLine(x1,y1,x3,y3);
+//	tri.addLine(x2,y2,x3,y3);
+//
+//	for(std::vector<HorizLine>::iterator it = tri.lines.begin(),
+//			end = tri.lines.end() ; it != end ; ++it)
+//	{
+//		drawLine(it->left, it->y, it->right, it->y);
+//	}
 }
 
 void drawLine(int x1, int y1, int x2, int y2)
@@ -151,7 +155,7 @@ void readData()
 	char filename[50];
 	gets(filename);
 
-	char s[20];
+	char s[30];
 
 	input = fopen(filename, "r+");
 	if(input == NULL)
@@ -168,29 +172,89 @@ void readData()
 				fscanf(input, "%d %d", &window_width, &window_height);
 			if(strcmp(s, "LINE") == 0)
 			{
-				//read 4 numbers: x1, y1, x2, y2
-				pdata thing;
-				thing.type = LINE;
-				fscanf(input, "%f %f %f %f", &thing.x1, &thing.y1,
-						&thing.x2, &thing.y2);
-				things.push_back(thing);
+				Thing t;
+				t.type = Thing::LINE;
+				for(int i = 0 ; i < 2 ; i++)
+				{
+					vec4 p;
+					fscanf(input, "%f %f %f", &p.x, &p.y, &p.z);
+					p.w = 1.0;
+					t.points.push_back(p);
+				}
+
+				//TODO: apply CTM to line
+
+				things.push_back(t);
 			}
 			if(strcmp(s, "RGB") == 0)
 			{
 				//read R, G, B
-				pdata thing;
-				thing.type = RGB;
-				fscanf(input, "%f %f %f", &thing.r, &thing.g, &thing.b);
-				things.push_back(thing);
+				Thing t;
+				t.type = Thing::RGB;
+				fscanf(input, "%f %f %f", &t.r, &t.g, &t.b);
+				things.push_back(t);
 			}
 			if(strcmp(s, "TRI") == 0)
 			{
 				//read x1, y1, x2, y2, x3, y3
-				pdata thing;
-				thing.type = TRIANGLE;
-				fscanf(input, "%f %f %f %f %f %f", &thing.x1, &thing.y1,
-						&thing.x2, &thing.y2, &thing.x3, &thing.y3);
-				things.push_back(thing);
+				Thing t;
+				t.type = Thing::TRIANGLE;
+				for(int i = 0 ; i < 3 ; i++)
+				{
+					vec4 p;
+					fscanf(input, "%f %f %f", &p.x, &p.y, &p.z);
+					p.w = 1.0;
+					t.points.push_back(p);
+				}
+
+				//TODO: apply CTM to triangle
+
+				things.push_back(t);
+			}
+			if(strcmp(s, "LOAD_IDENTITY_MATRIX") == 0)
+			{
+				CTM = mat4();
+			}
+			if(strcmp(s, "ROTATEX") == 0)
+			{
+				float angle;
+				fscanf(input, "%f", &angle);
+				CTM = RotateX(angle) * CTM;
+			}
+			if(strcmp(s, "ROTATEY") == 0)
+			{
+				float angle;
+				fscanf(input, "%f", &angle);
+				CTM = RotateY(angle) * CTM;
+			}
+			if(strcmp(s, "ROTATEZ") == 0)
+			{
+				float angle;
+				fscanf(input, "%f", &angle);
+				CTM = RotateZ(angle) * CTM;
+			}
+			if(strcmp(s, "SCALE") == 0)
+			{
+				float sx, sy, sz;
+				fscanf(input, "%f %f %f", &sx, &sy, &sz);
+				CTM = Scale(sx, sy, sz) * CTM;
+			}
+			if(strcmp(s, "TRANSLATE") == 0)
+			{
+				float tx, ty, tz;
+				fscanf(input, "%f %f %f", &tx, &ty, &tz);
+				CTM = Translate(tx, ty, tz) * CTM;
+			}
+			if(strcmp(s, "WIREFRAME_CUBE") == 0)
+			{
+				//TODO: create a wireframe cube and apply CTM to it.
+				Thing t = createUnitCube();
+				for(std::vector<vec4>::iterator it = t.points.begin(),
+						end = t.points.end() ; it != end ; ++it)
+				{
+					*it = CTM * (*it);
+				}
+				things.push_back(t);
 			}
 		}
 	}
@@ -217,7 +281,7 @@ int main(int argc, char** argv)
 	glutInit(&argc, argv);
 
 	//read data from file
-	readData();
+	//readData();
 	size = window_width * window_height;
 	pixels = new float[size*3];
 
