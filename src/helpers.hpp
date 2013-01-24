@@ -20,10 +20,23 @@ struct Point2D
 	int x, y;
 };
 
+void createUnitCube(std::vector<vec4>* list)
+{
+	list->push_back(vec4(-0.5, -0.5, -0.5, 1));
+	list->push_back(vec4(-0.5, -0.5, 0.5, 1));
+	list->push_back(vec4(-0.5, 0.5, -0.5, 1));
+	list->push_back(vec4(-0.5, 0.5, 0.5, 1));
+
+	list->push_back(vec4(0.5, -0.5, -0.5, 1));
+	list->push_back(vec4(0.5, -0.5, 0.5, 1));
+	list->push_back(vec4(0.5, 0.5, -0.5, 1));
+	list->push_back(vec4(0.5, 0.5, 0.5, 1));
+}
+
 Thing createUnitCube()
 {
 	Thing cube;
-	cube.type == Thing::CUBE;
+	cube.type = Thing::CUBE;
 	cube.points.push_back(vec4(-0.5, -0.5, -0.5, 1));
 	cube.points.push_back(vec4(-0.5, -0.5, 0.5, 1));
 	cube.points.push_back(vec4(-0.5, 0.5, -0.5, 1));

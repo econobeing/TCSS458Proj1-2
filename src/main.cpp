@@ -98,6 +98,7 @@ void display()
 	for(std::vector<Thing>::iterator it = things.begin(), end = things.end();
 		it != end ; ++it)
 	{
+
 		switch(it->type)
 		{
 		case Thing::LINE:
@@ -114,17 +115,15 @@ void display()
 			green = it->g;
 			blue = it->b;
 			break;
-		case Thing::CUBE: {
+		case Thing::CUBE:
 			// (0,1), (0,3), (0,5), (1,3),
 			// (1,5), (2,3), (2,6), (3,7),
 			// (4,5), (4,6), (5,7), (6,7)
 			std::vector<vec2> points = vec4Tovec2(it->points);
 
-			cout << "in cube case" << endl;
-
 			drawLine(points[0], points[1]);
-			drawLine(points[0], points[3]);
-			drawLine(points[0], points[5]);
+			drawLine(points[0], points[2]); // bad one, old: 0,3
+			drawLine(points[0], points[4]); // bad one, old: 0,5
 			drawLine(points[1], points[3]);
 
 			drawLine(points[1], points[5]);
@@ -138,7 +137,7 @@ void display()
 			drawLine(points[6], points[7]);
 
 			break;
-		}
+
 		}
 
 	}
@@ -170,23 +169,26 @@ void drawLine(int x1, int y1, int x2, int y2)
 
 void drawTriangle(Thing* t)
 {
-//	int x1 = objToPix(p->x1,window_width);
-//	int x2 = objToPix(p->x2,window_width);
-//	int x3 = objToPix(p->x3,window_width);
-//	int y1 = objToPix(p->y1,window_height);
-//	int y2 = objToPix(p->y2,window_height);
-//	int y3 = objToPix(p->y3,window_height);
+	std::vector<vec2> points = vec4Tovec2(t->points);
 
-//	TriLines tri;
-//	tri.addLine(x1,y1,x2,y2);
-//	tri.addLine(x1,y1,x3,y3);
-//	tri.addLine(x2,y2,x3,y3);
-//
-//	for(std::vector<HorizLine>::iterator it = tri.lines.begin(),
-//			end = tri.lines.end() ; it != end ; ++it)
-//	{
-//		drawLine(it->left, it->y, it->right, it->y);
-//	}
+	TriLines tl;
+
+	int x1 = objToPix(points[0].x, window_width);
+	int y1 = objToPix(points[0].y, window_height);
+	int x2 = objToPix(points[1].x, window_width);
+	int y2 = objToPix(points[1].y, window_height);
+	int x3 = objToPix(points[2].x, window_width);
+	int y3 = objToPix(points[2].y, window_height);
+
+	tl.addLine(x1, y1, x2, y2);
+	tl.addLine(x1, y1, x3, y3);
+	tl.addLine(x2, y2, x3, y3);
+
+	for(std::vector<HorizLine>::iterator it = tl.lines.begin(),
+			end = tl.lines.end() ; it != end ; ++it)
+	{
+		drawLine(it->left, it->y, it->right, it->y);
+	}
 }
 
 
@@ -269,18 +271,19 @@ void readData()
 			}
 			if(strcmp(s, "WIREFRAME_CUBE") == 0)
 			{
-				Thing t = createUnitCube();
-				t.type == Thing::CUBE;
+				//Thing t = createUnitCube();
+				Thing t;
+				t.type = Thing::CUBE;
+				createUnitCube(&t.points);
+
 				for(std::vector<vec4>::iterator it = t.points.begin(),
 						end = t.points.end() ; it != end ; ++it)
 				{
 					*it = CTM * (*it);
-					//TODO: delete this
-									cout << *it << endl;
 				}
 				things.push_back(t);
 
-
+				cout << "created cube" << endl;
 			}
 			if(strcmp(s, "LOAD_IDENTITY_MATRIX") == 0)
 			{
@@ -336,6 +339,35 @@ int objToPix(float f, int pixels)
 		return (int) result; // round down
 }
 
+void keyboardSpecial(int key, int x, int y)
+{
+	//100 = left
+	//101 = up
+	//102 = right
+	//103 = down
+
+	if(key == 100 || key == 102)
+	{
+		int deg = (key == 100) ? 2 : -2;
+		for(std::vector<Thing>::iterator it = things.begin(),
+				end = things.end() ; it != end ; ++it)
+		{
+			thingRotateY(&*it, deg);
+		}
+	}
+	if(key == 101 || key == 103)
+	{
+		int deg = (key == 101) ? 2 : -2;
+		for(std::vector<Thing>::iterator it = things.begin(),
+				end = things.end() ; it != end ; ++it)
+		{
+			thingRotateX(&*it, deg);
+		}
+	}
+
+	glutPostRedisplay();
+}
+
 int main(int argc, char** argv)
 {
 	glutInit(&argc, argv);
@@ -350,6 +382,8 @@ int main(int argc, char** argv)
 	glutCreateWindow("OpenGL glDrawPixels demo - simplified by JM");
 
 	glutDisplayFunc(display);
+
+	glutSpecialFunc(keyboardSpecial);
 
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 
