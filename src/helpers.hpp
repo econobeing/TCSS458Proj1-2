@@ -129,4 +129,54 @@ std::vector<Point2D> getPointsFromLine2D(int x1, int y1, int x2, int y2)
 	return points;
 }
 
+vec3 vec4Tovec3(vec4 &v)
+{
+	vec3 vec;
+	vec.x = v.x;
+	vec.y = v.y;
+	vec.z = v.z;
+
+	return vec;
+}
+
+std::vector<vec3> vec4Tovec3(std::vector<vec4> list)
+{
+	std::vector<vec3> converted;
+
+	for(std::vector<vec4>::iterator it = list.begin(), end = list.end() ;
+			it != end ; ++it)
+	{
+		vec3 v;
+		v.x = it->x;
+		v.y = it->y;
+		v.z = it->z;
+		converted.push_back(v);
+	}
+	return converted;
+}
+
+vec2 vec3Tovec2(vec3 &v)
+{
+	vec2 vec;
+	vec.x = v.x;
+	vec.y = v.y;
+
+	return vec;
+}
+
+std::vector<vec2> vec3Tovec2(std::vector<vec3> list)
+{
+	std::vector<vec2> converted;
+
+	for(std::vector<vec3>::iterator it = list.begin(), end = list.end() ;
+			it != end ; ++it)
+	{
+		vec2 v;
+		v.x = it->x;
+		v.y = it->y;
+		converted.push_back(v);
+	}
+	return converted;
+}
+
 #endif /* HELPERS_HPP_ */

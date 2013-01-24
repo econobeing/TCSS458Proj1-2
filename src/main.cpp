@@ -12,7 +12,12 @@
 //C includes
 #include <stdio.h>
 #include <string.h>
-#include <GL/glut.h>
+
+#ifdef __APPLE__
+#  include <GLUT/glut.h>
+#else // non-Mac OS X operating systems
+#  include <GL/glut.h>
+#endif  // __APPLE__
 
 #include "math.h"
 
@@ -92,6 +97,12 @@ void display()
 //					objToPix(it->y2, window_height));
 			//TODO: apparently vec4 has no such thing as .xyz(), so
 			// i'll probably have to make a helper method for it...
+			std::vector<vec2> points = vec3Tovec2(vec4Tovec3(it->points));
+			int x1 = objToPix(points[0].x, window_width);
+			int y1 = objToPix(points[0].y, window_height);
+			int x2 = objToPix(points[1].x, window_width);
+			int y2 = objToPix(points[1].y, window_height);
+			drawLine(x1, y1, x2, y2);
 			break;
 		}
 		case Thing::TRIANGLE:
@@ -182,7 +193,11 @@ void readData()
 					t.points.push_back(p);
 				}
 
-				//TODO: apply CTM to line
+				for(std::vector<vec4>::iterator it = t.points.begin(),
+						end = t.points.end() ; it != end ; ++it)
+				{
+					*it = CTM * (*it);
+				}
 
 				things.push_back(t);
 			}
@@ -207,8 +222,23 @@ void readData()
 					t.points.push_back(p);
 				}
 
-				//TODO: apply CTM to triangle
+				for(std::vector<vec4>::iterator it = t.points.begin(),
+						end = t.points.end() ; it != end ; ++it)
+				{
+					*it = CTM * (*it);
+				}
 
+				things.push_back(t);
+			}
+			if(strcmp(s, "WIREFRAME_CUBE") == 0)
+			{
+				//TODO: create a wireframe cube and apply CTM to it.
+				Thing t = createUnitCube();
+				for(std::vector<vec4>::iterator it = t.points.begin(),
+						end = t.points.end() ; it != end ; ++it)
+				{
+					*it = CTM * (*it);
+				}
 				things.push_back(t);
 			}
 			if(strcmp(s, "LOAD_IDENTITY_MATRIX") == 0)
@@ -245,17 +275,6 @@ void readData()
 				fscanf(input, "%f %f %f", &tx, &ty, &tz);
 				CTM = Translate(tx, ty, tz) * CTM;
 			}
-			if(strcmp(s, "WIREFRAME_CUBE") == 0)
-			{
-				//TODO: create a wireframe cube and apply CTM to it.
-				Thing t = createUnitCube();
-				for(std::vector<vec4>::iterator it = t.points.begin(),
-						end = t.points.end() ; it != end ; ++it)
-				{
-					*it = CTM * (*it);
-				}
-				things.push_back(t);
-			}
 		}
 	}
 	fclose(input);
@@ -281,7 +300,7 @@ int main(int argc, char** argv)
 	glutInit(&argc, argv);
 
 	//read data from file
-	//readData();
+	readData();
 	size = window_width * window_height;
 	pixels = new float[size*3];
 
