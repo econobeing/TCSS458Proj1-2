@@ -57,6 +57,7 @@ mat4 CTM;
 
 //FUNCTION PROTOTYPES
 int objToPix(float f, int pixels);
+void drawLine(vec2 &v1, vec2 &v2);
 void drawLine(int x1, int y1, int x2, int y2);
 void drawTriangle(Thing* t);
 
@@ -72,6 +73,13 @@ void putPixel(int x, int y, float r, float g, float b) {
     }
 }
 
+void testmethod()
+{
+	printf("osifnosnfdsf");
+}
+
+
+
 void display()
 {
 	for(unsigned int y = 0 ; y < window_height ; y++)
@@ -83,6 +91,9 @@ void display()
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	//TODO: delete this
+	cout << things.size() << endl;
+
 	//this is where the stuff gets drawn.
 	for(std::vector<Thing>::iterator it = things.begin(), end = things.end();
 		it != end ; ++it)
@@ -91,18 +102,8 @@ void display()
 		{
 		case Thing::LINE:
 		{
-//			drawLine(objToPix(it->x1, window_width),
-//					objToPix(it->y1, window_height),
-//					objToPix(it->x2, window_width),
-//					objToPix(it->y2, window_height));
-			//TODO: apparently vec4 has no such thing as .xyz(), so
-			// i'll probably have to make a helper method for it...
-			std::vector<vec2> points = vec3Tovec2(vec4Tovec3(it->points));
-			int x1 = objToPix(points[0].x, window_width);
-			int y1 = objToPix(points[0].y, window_height);
-			int x2 = objToPix(points[1].x, window_width);
-			int y2 = objToPix(points[1].y, window_height);
-			drawLine(x1, y1, x2, y2);
+			std::vector<vec2> points = vec4Tovec2(it->points);
+			drawLine(points[0], points[1]);
 			break;
 		}
 		case Thing::TRIANGLE:
@@ -113,8 +114,31 @@ void display()
 			green = it->g;
 			blue = it->b;
 			break;
-		case Thing::CUBE:
+		case Thing::CUBE: {
+			// (0,1), (0,3), (0,5), (1,3),
+			// (1,5), (2,3), (2,6), (3,7),
+			// (4,5), (4,6), (5,7), (6,7)
+			std::vector<vec2> points = vec4Tovec2(it->points);
+
+			cout << "in cube case" << endl;
+
+			drawLine(points[0], points[1]);
+			drawLine(points[0], points[3]);
+			drawLine(points[0], points[5]);
+			drawLine(points[1], points[3]);
+
+			drawLine(points[1], points[5]);
+			drawLine(points[2], points[3]);
+			drawLine(points[2], points[6]);
+			drawLine(points[3], points[7]);
+
+			drawLine(points[4], points[5]);
+			drawLine(points[4], points[6]);
+			drawLine(points[5], points[7]);
+			drawLine(points[6], points[7]);
+
 			break;
+		}
 		}
 
 	}
@@ -123,6 +147,25 @@ void display()
 	glDrawPixels(window_width,window_height,GL_RGB,GL_FLOAT,pixels);
 
 	glutSwapBuffers();
+}
+
+void drawLine(vec2 &v1, vec2 &v2)
+{
+	int x1 = objToPix(v1.x, window_width);
+	int y1 = objToPix(v1.y, window_height);
+	int x2 = objToPix(v2.x, window_width);
+	int y2 = objToPix(v2.y, window_height);
+	drawLine(x1, y1, x2, y2);
+}
+
+void drawLine(int x1, int y1, int x2, int y2)
+{
+	std::vector<Point2D> points = getPointsFromLine2D(x1, y1, x2, y2);
+	for(std::vector<Point2D>::iterator it = points.begin(),
+			end = points.end() ; it != end ; ++it)
+	{
+		putPixel(it->x, it->y, red, green, blue);
+	}
 }
 
 void drawTriangle(Thing* t)
@@ -146,15 +189,9 @@ void drawTriangle(Thing* t)
 //	}
 }
 
-void drawLine(int x1, int y1, int x2, int y2)
-{
-	std::vector<Point2D> points = getPointsFromLine2D(x1, y1, x2, y2);
-	for(std::vector<Point2D>::iterator it = points.begin(),
-			end = points.end() ; it != end ; ++it)
-	{
-		putPixel(it->x, it->y, red, green, blue);
-	}
-}
+
+
+
 
 /**
  * \brief Parses an input data file
@@ -232,14 +269,18 @@ void readData()
 			}
 			if(strcmp(s, "WIREFRAME_CUBE") == 0)
 			{
-				//TODO: create a wireframe cube and apply CTM to it.
 				Thing t = createUnitCube();
+				t.type == Thing::CUBE;
 				for(std::vector<vec4>::iterator it = t.points.begin(),
 						end = t.points.end() ; it != end ; ++it)
 				{
 					*it = CTM * (*it);
+					//TODO: delete this
+									cout << *it << endl;
 				}
 				things.push_back(t);
+
+
 			}
 			if(strcmp(s, "LOAD_IDENTITY_MATRIX") == 0)
 			{

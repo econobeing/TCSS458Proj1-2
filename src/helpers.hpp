@@ -155,6 +155,29 @@ std::vector<vec3> vec4Tovec3(std::vector<vec4> list)
 	return converted;
 }
 
+vec2 vec4Tovec2(vec4 &v)
+{
+	vec2 vec;
+	vec.x = v.x;
+	vec.y = v.y;
+	return vec;
+}
+
+std::vector<vec2> vec4Tovec2(std::vector<vec4> list)
+{
+	std::vector<vec2> converted;
+
+	for(std::vector<vec4>::iterator it = list.begin(), end = list.end() ;
+			it != end ; ++it)
+	{
+		vec2 v;
+		v.x = it->x;
+		v.y = it->y;
+		converted.push_back(v);
+	}
+	return converted;
+}
+
 vec2 vec3Tovec2(vec3 &v)
 {
 	vec2 vec;
