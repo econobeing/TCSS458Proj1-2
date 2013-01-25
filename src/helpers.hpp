@@ -9,29 +9,21 @@
 #define HELPERS_HPP_
 
 #include <vector>
+#include <iostream>
+
+using namespace std;
 
 #include "vec.h"
+#include "math.h"
 
 #include "Thing.hpp"
 
+#define PI 3.1415962
 
 struct Point2D
 {
 	int x, y;
 };
-
-void createUnitCube(std::vector<vec4>* list)
-{
-	list->push_back(vec4(-0.5, -0.5, -0.5, 1));
-	list->push_back(vec4(-0.5, -0.5, 0.5, 1));
-	list->push_back(vec4(-0.5, 0.5, -0.5, 1));
-	list->push_back(vec4(-0.5, 0.5, 0.5, 1));
-
-	list->push_back(vec4(0.5, -0.5, -0.5, 1));
-	list->push_back(vec4(0.5, -0.5, 0.5, 1));
-	list->push_back(vec4(0.5, 0.5, -0.5, 1));
-	list->push_back(vec4(0.5, 0.5, 0.5, 1));
-}
 
 Thing createUnitCube()
 {
@@ -53,6 +45,61 @@ Thing createUnitCube()
 	//^those are the indices of the points array to use.
 
 	return cube;
+}
+
+Thing createUnitCylinder(int n)
+{
+	float theta = (2*PI) / n;
+
+	Thing t;
+	t.type = Thing::CYLINDER;
+
+//	float pythag = sqrt((0.5*0.5) + (0.5*0.5));
+
+	/*the commented out lines that use pythag make a cylinder that's quite a
+	bit wider than the unit cube. The uncommented lines work fairly well,
+	the resulting cylinder is a little short in the x axis, but still
+	better than the pythag one. */
+
+	for(int i = 0 ; i < n ; i++)
+	{
+		float x = 0.5 * cos((float)i * theta + (theta/2.0));
+		float z = 0.5 * sin((float)i * theta + (theta/2.0));
+//		float x = pythag * cos((float)i * theta);
+//		float z = pythag * sin((float)i * theta);
+		vec4 v(x,0.5,z,1.0);
+		t.points.push_back(v);
+	}
+
+	for(int i = 0 ; i < n ; i++)
+	{
+		float x = 0.5 * cos((float)i * theta + (theta/2.0));
+		float z = 0.5 * sin((float)i * theta + (theta/2.0));
+//		float x = pythag * cos((float)i * theta);
+//		float z = pythag * sin((float)i * theta);
+		vec4 v(x,-0.5,z,1.0);
+		t.points.push_back(v);
+	}
+	return t;
+}
+
+Thing createUnitCone(int n) //n = number of points that make up the base
+{
+	Thing t;
+	t.type = Thing::CONE;
+
+	t.points.push_back(vec4(0.0, 0.5, 0.0, 1.0)); //top of cone
+
+	float theta = (2*PI)/(float)n;
+
+	for(int i = 0 ; i < n ; i++)
+	{
+		float x = 0.5 * cos((float)i * theta + (theta/2.0));
+		float z = 0.5 * sin((float)i * theta + (theta/2.0));
+		vec4 v(x, -0.5, z, 1.0);
+		t.points.push_back(v);
+	}
+	return t;
 }
 
 std::vector<Point2D> getPointsFromLine2D(int x1, int y1, int x2, int y2)

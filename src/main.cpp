@@ -115,7 +115,7 @@ void display()
 			green = it->g;
 			blue = it->b;
 			break;
-		case Thing::CUBE:
+		case Thing::CUBE: {
 			// (0,1), (0,3), (0,5), (1,3),
 			// (1,5), (2,3), (2,6), (3,7),
 			// (4,5), (4,6), (5,7), (6,7)
@@ -137,7 +137,42 @@ void display()
 			drawLine(points[6], points[7]);
 
 			break;
+		}
+		case Thing::CYLINDER: {
+			std::vector<vec2> points = vec4Tovec2(it->points);
+			int half = points.size()/2;
 
+			//top circle
+			for(int i = 1 ; i < half ; i++)
+				drawLine(points[i-1], points[i]);
+			drawLine(points[0], points[half-1]); //does nothing
+
+			//bottom circle
+			for(unsigned int i = half ; i < points.size()-1 ; i++)
+				drawLine(points[i+1], points[i]);
+
+			drawLine(points[half],points[points.size()-1]);
+
+			//middle lines
+			for(int i = 0 ; i < half ; i++)
+				drawLine(points[i], points[i+half]);
+
+			break;
+		}
+		case Thing::CONE: {
+			std::vector<vec2> points = vec4Tovec2(it->points);
+
+			//draw lines from tip to base
+			for(int i = 1 ; i < points.size() ; i++)
+				drawLine(points[0], points[i]);
+
+			//draw base circle lines
+			for(int i = 2 ; i < points.size() ; i++)
+				drawLine(points[i-1], points[i]);
+			drawLine(points[1], points[points.size()-1]);
+
+			break;
+		}
 		}
 
 	}
@@ -271,10 +306,7 @@ void readData()
 			}
 			if(strcmp(s, "WIREFRAME_CUBE") == 0)
 			{
-				//Thing t = createUnitCube();
-				Thing t;
-				t.type = Thing::CUBE;
-				createUnitCube(&t.points);
+				Thing t = createUnitCube();
 
 				for(std::vector<vec4>::iterator it = t.points.begin(),
 						end = t.points.end() ; it != end ; ++it)
@@ -283,7 +315,32 @@ void readData()
 				}
 				things.push_back(t);
 
-				cout << "created cube" << endl;
+				//cout << "created cube" << endl;
+			}
+			if(strcmp(s, "CYLINDER") == 0)
+			{
+				int c;
+				fscanf(input, "%d", &c);
+				Thing t = createUnitCylinder(c);
+
+				for(std::vector<vec4>::iterator it = t.points.begin(),
+						end = t.points.end() ; it != end ; ++it)
+				{
+					*it = CTM * (*it);
+				}
+				things.push_back(t);
+			}
+			if(strcmp(s, "CONE") == 0)
+			{
+				int c;
+				fscanf(input, "%d", &c);
+				Thing t = createUnitCone(c);
+				for(std::vector<vec4>::iterator it = t.points.begin(),
+						end = t.points.end() ; it != end ; ++it)
+				{
+					*it = CTM * (*it);
+				}
+				things.push_back(t);
 			}
 			if(strcmp(s, "LOAD_IDENTITY_MATRIX") == 0)
 			{
@@ -348,7 +405,7 @@ void keyboardSpecial(int key, int x, int y)
 
 	if(key == 100 || key == 102)
 	{
-		int deg = (key == 100) ? 2 : -2;
+		int deg = (key == 100) ? -2 : 2;
 		for(std::vector<Thing>::iterator it = things.begin(),
 				end = things.end() ; it != end ; ++it)
 		{
@@ -357,7 +414,7 @@ void keyboardSpecial(int key, int x, int y)
 	}
 	if(key == 101 || key == 103)
 	{
-		int deg = (key == 101) ? 2 : -2;
+		int deg = (key == 101) ? -2 : 2;
 		for(std::vector<Thing>::iterator it = things.begin(),
 				end = things.end() ; it != end ; ++it)
 		{

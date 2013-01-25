@@ -22,6 +22,8 @@ public:
 	static const int TRIANGLE = 2;
 	static const int RGB = 3;
 	static const int CUBE = 4;
+	static const int CYLINDER = 5;
+	static const int CONE = 6;
 
 	//enum Type {LINE, TRIANGLE, CUBE, RGB};
 	int type;
