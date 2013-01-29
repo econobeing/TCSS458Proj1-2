@@ -1,5 +1,5 @@
 /*
- * object.hpp
+ * Thing.hpp
  *
  *  Created on: Jan 23, 2013
  *      Author: Travis Lewis
@@ -25,7 +25,6 @@ public:
 	static const int CYLINDER = 5;
 	static const int CONE = 6;
 
-	//enum Type {LINE, TRIANGLE, CUBE, RGB};
 	int type;
 	std::vector<vec4> points;
 	float r,g,b;

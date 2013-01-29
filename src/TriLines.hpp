@@ -2,7 +2,7 @@
  * TriLines.hpp
  *
  *  Created on: Jan 23, 2013
- *      Author: econobeing
+ *      Author: Travis Lewis
  */
 
 #ifndef TRILINES_HPP_
