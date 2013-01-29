@@ -67,13 +67,6 @@ void putPixel(int x, int y, float r, float g, float b) {
     }
 }
 
-void testmethod()
-{
-	printf("osifnosnfdsf");
-}
-
-
-
 void display()
 {
 	for(unsigned int y = 0 ; y < window_height ; y++)
