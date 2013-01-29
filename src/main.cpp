@@ -25,8 +25,6 @@
 #include <vector>
 #include <iostream>
 
-
-
 //my includes
 #include "helpers.hpp"
 #include "TriLines.hpp"
@@ -37,15 +35,11 @@ using namespace std;
 //defines to make understanding the code easier
 #define TRUE 1
 #define FALSE 0
-//#define LINE 1
-//#define TRIANGLE 2
-//#define RGB 3
 
 unsigned int window_width,// = 512,
              window_height;// = 512;
 
 //the number of pixels the window contains
-//(took away const modifier)
 int size;
 
 float* pixels;
@@ -91,14 +85,10 @@ void display()
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	//TODO: delete this
-	cout << things.size() << endl;
-
 	//this is where the stuff gets drawn.
 	for(std::vector<Thing>::iterator it = things.begin(), end = things.end();
 		it != end ; ++it)
 	{
-
 		switch(it->type)
 		{
 		case Thing::LINE:
@@ -116,14 +106,14 @@ void display()
 			blue = it->b;
 			break;
 		case Thing::CUBE: {
-			// (0,1), (0,3), (0,5), (1,3),
+			// (0,1), (0,2), (0,4), (1,3),
 			// (1,5), (2,3), (2,6), (3,7),
 			// (4,5), (4,6), (5,7), (6,7)
 			std::vector<vec2> points = vec4Tovec2(it->points);
 
 			drawLine(points[0], points[1]);
-			drawLine(points[0], points[2]); // bad one, old: 0,3
-			drawLine(points[0], points[4]); // bad one, old: 0,5
+			drawLine(points[0], points[2]);
+			drawLine(points[0], points[4]);
 			drawLine(points[1], points[3]);
 
 			drawLine(points[1], points[5]);
@@ -140,21 +130,20 @@ void display()
 		}
 		case Thing::CYLINDER: {
 			std::vector<vec2> points = vec4Tovec2(it->points);
-			int half = points.size()/2;
+			unsigned int half = points.size()/2;
 
 			//top circle
-			for(int i = 1 ; i < half ; i++)
+			for(unsigned int i = 1 ; i < half ; i++)
 				drawLine(points[i-1], points[i]);
-			drawLine(points[0], points[half-1]); //does nothing
+			drawLine(points[0], points[half-1]);
 
 			//bottom circle
 			for(unsigned int i = half ; i < points.size()-1 ; i++)
 				drawLine(points[i+1], points[i]);
-
 			drawLine(points[half],points[points.size()-1]);
 
 			//middle lines
-			for(int i = 0 ; i < half ; i++)
+			for(unsigned int i = 0 ; i < half ; i++)
 				drawLine(points[i], points[i+half]);
 
 			break;
@@ -163,11 +152,11 @@ void display()
 			std::vector<vec2> points = vec4Tovec2(it->points);
 
 			//draw lines from tip to base
-			for(int i = 1 ; i < points.size() ; i++)
+			for(unsigned int i = 1 ; i < points.size() ; i++)
 				drawLine(points[0], points[i]);
 
 			//draw base circle lines
-			for(int i = 2 ; i < points.size() ; i++)
+			for(unsigned int i = 2 ; i < points.size() ; i++)
 				drawLine(points[i-1], points[i]);
 			drawLine(points[1], points[points.size()-1]);
 
@@ -255,7 +244,7 @@ void readData()
 			// the line is encountered whenever a // is read
 			if(strcmp(s, "DIM") == 0)
 				fscanf(input, "%d %d", &window_width, &window_height);
-			if(strcmp(s, "LINE") == 0)
+			else if(strcmp(s, "LINE") == 0)
 			{
 				Thing t;
 				t.type = Thing::LINE;
@@ -275,7 +264,7 @@ void readData()
 
 				things.push_back(t);
 			}
-			if(strcmp(s, "RGB") == 0)
+			else if(strcmp(s, "RGB") == 0)
 			{
 				//read R, G, B
 				Thing t;
@@ -283,7 +272,7 @@ void readData()
 				fscanf(input, "%f %f %f", &t.r, &t.g, &t.b);
 				things.push_back(t);
 			}
-			if(strcmp(s, "TRI") == 0)
+			else if(strcmp(s, "TRI") == 0)
 			{
 				//read x1, y1, x2, y2, x3, y3
 				Thing t;
@@ -304,7 +293,7 @@ void readData()
 
 				things.push_back(t);
 			}
-			if(strcmp(s, "WIREFRAME_CUBE") == 0)
+			else if(strcmp(s, "WIREFRAME_CUBE") == 0)
 			{
 				Thing t = createUnitCube();
 
@@ -314,10 +303,8 @@ void readData()
 					*it = CTM * (*it);
 				}
 				things.push_back(t);
-
-				//cout << "created cube" << endl;
 			}
-			if(strcmp(s, "CYLINDER") == 0)
+			else if(strcmp(s, "CYLINDER") == 0)
 			{
 				int c;
 				fscanf(input, "%d", &c);
@@ -330,7 +317,7 @@ void readData()
 				}
 				things.push_back(t);
 			}
-			if(strcmp(s, "CONE") == 0)
+			else if(strcmp(s, "CONE") == 0)
 			{
 				int c;
 				fscanf(input, "%d", &c);
@@ -342,35 +329,35 @@ void readData()
 				}
 				things.push_back(t);
 			}
-			if(strcmp(s, "LOAD_IDENTITY_MATRIX") == 0)
+			else if(strcmp(s, "LOAD_IDENTITY_MATRIX") == 0)
 			{
 				CTM = mat4();
 			}
-			if(strcmp(s, "ROTATEX") == 0)
+			else if(strcmp(s, "ROTATEX") == 0)
 			{
 				float angle;
 				fscanf(input, "%f", &angle);
 				CTM = RotateX(angle) * CTM;
 			}
-			if(strcmp(s, "ROTATEY") == 0)
+			else if(strcmp(s, "ROTATEY") == 0)
 			{
 				float angle;
 				fscanf(input, "%f", &angle);
 				CTM = RotateY(angle) * CTM;
 			}
-			if(strcmp(s, "ROTATEZ") == 0)
+			else if(strcmp(s, "ROTATEZ") == 0)
 			{
 				float angle;
 				fscanf(input, "%f", &angle);
 				CTM = RotateZ(angle) * CTM;
 			}
-			if(strcmp(s, "SCALE") == 0)
+			else if(strcmp(s, "SCALE") == 0)
 			{
 				float sx, sy, sz;
 				fscanf(input, "%f %f %f", &sx, &sy, &sz);
 				CTM = Scale(sx, sy, sz) * CTM;
 			}
-			if(strcmp(s, "TRANSLATE") == 0)
+			else if(strcmp(s, "TRANSLATE") == 0)
 			{
 				float tx, ty, tz;
 				fscanf(input, "%f %f %f", &tx, &ty, &tz);
